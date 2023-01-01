@@ -21,8 +21,7 @@ I probably can
 "
 (Short help about requested parameter)
 Please input number or nothing for (default_parameter)"  
-
-And use [`String.IsNullOrEmpty()`](https://stackoverflow.com/questions/1655318/how-to-set-default-input-value-in-net-console-app/1655328#1655328) and [`?`](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator) operator to set inline if statement.
+Then check if I can `int.TryParse` it unless set default variable.
 
 ## 2. Game state
 
