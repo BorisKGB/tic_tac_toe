@@ -15,6 +15,28 @@
     return value;
 }
 
+char[][] CreateGameField(int size = 3, string initState = "")
+{
+    char[][] Field = new char[size][];
+    // Create empty field
+    for (int i=0; i < size; i++)
+    {
+        Field[i] = new char[size];
+        for (int j=0; j < size; j++)
+        {
+            Field[i][j] = ' ';
+        }
+    }
+    if (initState != "")
+    {
+        // WARN, no initState string validation, assume that it is always correct
+        for (int i=0; i< initState.Length; i++)
+        {
+            Field[i/size][i%size] = initState[i];
+        }
+    }
+    return Field;
+}
 
 int FieldSize = 3;
 int Marks2Win = FieldSize;
@@ -30,3 +52,15 @@ int PlayMode = GetPlayMode(PlayModeHelp, PlayModeDefault);
 Console.WriteLine($"Current game mode {PlayMode} | Current field size {FieldSize}");
 // Console.WriteLine($"Current field size {FieldSize}");
 Console.WriteLine($"You need to create a row of {Marks2Win} elements to win");
+
+char[][] GameState = CreateGameField(FieldSize);
+
+//Console.WriteLine($"Currect play state {GameState}");
+for (int i = 0; i<GameState.Length;i++)
+{
+    for (int j =0; j<GameState[i].Length; j++)
+    {
+        Console.Write($"'{GameState[i][j]}' \t");
+    }
+    Console.Write("\n");
+}
