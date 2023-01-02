@@ -27,3 +27,5 @@ Then check if I can `int.TryParse` it unless set default variable.
 
 Planned to store field as array of arrays.  
 Field value will be stores as a char.
+
+Trying to implement "Load field" functional inside CreateGameField function. For debug purposses.
