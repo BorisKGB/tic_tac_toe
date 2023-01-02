@@ -38,6 +38,43 @@ char[][] CreateGameField(int size = 3, string initState = "")
     return Field;
 }
 
+void PrintGameField(char[][] Field, string headerNames)
+{
+    string header = "   |";
+    for (int i=0;i<Field.Length;i++)
+    {
+        if (i == Field.Length -1)
+        {
+            header += $" {headerNames[i]}";
+        }
+        else
+        {
+            header += $" {headerNames[i]} |";
+        }
+    }
+    string table = "";
+    for (int i = 0; i<Field.Length;i++)
+    {
+        table += $" {i+1} |";
+        for (int j =0; j<Field[i].Length; j++)
+        {
+            if (j == Field[i].Length-1)
+            {
+                table += $" {Field[i][j]}";
+            }
+            else
+            {
+                table += $" {Field[i][j]} |";
+            }
+        }
+        table += "\n";
+    }
+    Console.WriteLine(header);
+    Console.WriteLine(table);
+}
+
+string fieldHeaderNames = "abcdefghijklmnopqrstuvwxyz";
+
 int FieldSize = 3;
 int Marks2Win = FieldSize;
 
@@ -55,12 +92,4 @@ Console.WriteLine($"You need to create a row of {Marks2Win} elements to win");
 
 char[][] GameState = CreateGameField(FieldSize);
 
-//Console.WriteLine($"Currect play state {GameState}");
-for (int i = 0; i<GameState.Length;i++)
-{
-    for (int j =0; j<GameState[i].Length; j++)
-    {
-        Console.Write($"'{GameState[i][j]}' \t");
-    }
-    Console.Write("\n");
-}
+PrintGameField(GameState, fieldHeaderNames);
