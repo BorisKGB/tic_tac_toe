@@ -177,6 +177,7 @@ int CheckMarksInRow(char[][] Field, int[] pointCoordinates, int direction, int r
         else
         {
             equalCount = 0;
+            break;
         }
     }
     if (equalCount == rowLength * 2)
@@ -249,7 +250,7 @@ int CheckGameStatus(char[][] GameField, string PlayerMarks, int Marks2Win)
                     }
                 }
             }
-            else
+            else if (GameField[row][0] == ' ')
             {
                 emptyFields += 1;
             }
@@ -268,6 +269,7 @@ int CheckGameStatus(char[][] GameField, string PlayerMarks, int Marks2Win)
                 }
                 // do not need to check oblique lines in this part
             }
+            else if (GameField[row][0] == ' ')
             {
                 emptyFields += 1;
             }
