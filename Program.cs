@@ -119,7 +119,171 @@ int[] AskPlayerForCoordinates(char[][] GameField, string columnNames, string Pla
         }
     }
     return result;
+}
 
+int CheckMarksInRow(char[][] Field, int[] pointCoordinates, int direction, int rowLength)
+//bool IsEqualMarksInRow(char[][] Field, int[] pointCoordinates, int direction, int rowLength, bool ignoreEmpty)
+// Check if {rowLength} cells in {Field} in {direction} from(including) {pointCoordinates} are equal
+// possible directions
+//  0 Going through the first axis
+//  1 Going through the second axis
+//  2 Going obliquely up
+//  3 Going obliquely down
+// return
+// 1 if all fields are equal (win strike)
+// 0 if all fields are equal or empty (possible to do win strike)
+// -1 if there are different symbols in row
+{
+    int[][] points = new int[rowLength][];
+    char firstMark = Field[pointCoordinates[0]][pointCoordinates[1]];
+    switch (direction)
+    {
+        case 0:
+            for (int i=0;i<rowLength;i++)
+            {
+                points[i] = new int[] {pointCoordinates[0]+i, pointCoordinates[1]};
+            }
+            break;
+        case 1:
+            for (int i=0;i<rowLength;i++)
+            {
+                points[i] = new int[] {pointCoordinates[0], pointCoordinates[1]+i};
+            }
+            break;
+        case 2:
+            for (int i=0;i<rowLength;i++)
+            {
+                points[i] = new int[] {pointCoordinates[0]+i, pointCoordinates[1]+i};
+            }
+            break;
+        case 3:
+            for (int i=0;i<rowLength;i++)
+            {
+                points[i] = new int[] {pointCoordinates[0]-i, pointCoordinates[1]+i};
+            }
+            break;
+    }
+    int equalCount = 2;
+    for (int point=1;point<points.Length;point++)
+    {
+        if (Field[points[point][0]][points[point][1]] == firstMark )
+        {
+            equalCount += 2;
+        }
+        else if (Field[points[point][0]][points[point][1]] == ' ')
+        {
+            equalCount += 1;
+        }
+        else
+        {
+            equalCount = 0;
+        }
+    }
+    if (equalCount == rowLength * 2)
+    {
+        return 1;
+    }
+    if (equalCount > 0)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+// TIP, this function check only squared fields 
+// and assume that win streak equal field size
+int CheckGameStatus(char[][] GameField, string PlayerMarks, int Marks2Win)
+// possible return values
+// -2 game can continue
+// -1 draw (no way to win for any player)
+// 0/1 number of player who win, PlayerMarks char index in this case
+{
+    int result = -2;
+    int possibleRows = 0;
+    int emptyFields = 0;
+    int tmpLineStatus;
+    //for each PlayerMark
+    for (int markNum=0; markNum<PlayerMarks.Length; markNum++)
+    {
+        for (int row=0; row<GameField.Length; row++)
+        {
+            // check first axis row
+            if (GameField[row][0] == PlayerMarks[markNum])
+            {
+                // Always check horizontal lines
+                tmpLineStatus = CheckMarksInRow(GameField, new int[] {row, 0}, 1, Marks2Win);
+                if (tmpLineStatus == 1)
+                {
+                    return markNum;
+                }
+                else if (tmpLineStatus == 0)
+                {
+                    possibleRows += 1;
+                }
+                // If it make sense check oblique lines
+                if (row == 0)
+                {
+                    tmpLineStatus = CheckMarksInRow(GameField, new int[] {row, 0}, 2, Marks2Win);
+                    if (tmpLineStatus == 1)
+                    {
+                        return markNum;
+                    }
+                    else if (tmpLineStatus == 0)
+                    {
+                        possibleRows += 1;
+                    }
+                }
+                if (row == GameField.Length-1)
+                {
+                    tmpLineStatus = CheckMarksInRow(GameField, new int[] {row, 0}, 3, Marks2Win);
+                    if (tmpLineStatus == 1)
+                    {
+                        return markNum;
+                    }
+                    else if (tmpLineStatus == 0)
+                    {
+                        possibleRows += 1;
+                    }
+                }
+            }
+            else
+            {
+                emptyFields += 1;
+            }
+            // check second axis row
+            if (GameField[0][row] == PlayerMarks[markNum])
+            {
+                // Always check vertical lines
+                tmpLineStatus = CheckMarksInRow(GameField, new int[] {0, row}, 0, Marks2Win);
+                if (tmpLineStatus == 1)
+                {
+                    return markNum;
+                }
+                else if (tmpLineStatus == 0)
+                {
+                    possibleRows += 1;
+                }
+                // do not need to check oblique lines in this part
+            }
+            {
+                emptyFields += 1;
+            }
+        }
+
+    }
+    // check if trere is still a point to continue game (draw)
+    if (emptyFields < (GameField.Length + GameField[0].Length) && possibleRows == 0)
+    {
+        result = -1;
+    }
+    else
+    {
+        result = -2;
+    }
+    return result;
 }
 
 // This limit possible Game field size to 26, or to fieldHeaderNames.Length
@@ -168,11 +332,20 @@ while (!gameEnd)
     AddMark(GameState, playerMarks[currentPlayer], moveCoordinates[0], moveCoordinates[1]);
 
     // for now game newer end
-    //gameResult = CheckGameStatus(GameState, playerMarks);
+    gameResult = CheckGameStatus(GameState, playerMarks, Marks2Win);
     if (gameResult >= -1 && gameResult <= 1)
     {
         gameEnd = true;
     }
     PrintGameField(GameState, fieldHeaderNames);
     currentPlayer = (currentPlayer + 1)%2;
+}
+
+if (gameResult == -1)
+{
+    Console.WriteLine("Draw");
+}
+else
+{
+    Console.WriteLine($"{players[gameResult]} wins");
 }
