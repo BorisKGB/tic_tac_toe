@@ -7,16 +7,16 @@
     {
         value = _string == "" ? defaultValue : 0;
     }
-    if (value < 1 || value > 3)
+    if (value < 1 || value > 4)
     {
         Console.WriteLine($"Incorrect input '{_string}', game mode will be set to '{defaultValue}'");
         value = defaultValue;
     }
-    if (value != 2)
-    {
-        Console.WriteLine("This version implement only 'human vs human' game mode, enable it for you");
-        value = 2;
-    }
+    // if (value != 3)
+    // {
+    //     Console.WriteLine("This version implement only 'human vs human' game mode, enable it for you");
+    //     value = 3;
+    // }
     return value;
 }
 
@@ -294,15 +294,17 @@ int CheckGameStatus(char[][] GameField, string PlayerMarks, int Marks2Win)
 
 // This limit possible Game field size to 26, or to fieldHeaderNames.Length
 string fieldHeaderNames = "abcdefghijklmnopqrstuvwxyz";
+string playerMarks = "xo";
 
 int FieldSize = 3;
 int Marks2Win = FieldSize;
 
 int PlayModeDefault = 1;
 string PlayModeHelp = @$"Game mod can be
-1) robot vs human (default)
-2) human vs human
-3) robot vs robot
+1) robot vs human, play as '{playerMarks[0]}' (default)
+2) robot vs human, play as '{playerMarks[1]}'
+3) human vs human
+4) robot vs robot
 ---
 For input coordinates put Letter, then number. 'A1' as example
 Please input game mode number (default:{PlayModeDefault}): ";
@@ -315,8 +317,25 @@ char[][] GameState = CreateGameField(FieldSize);
 
 PrintGameField(GameState, fieldHeaderNames);
 
-string[] players = new String[2] {"player1", "player2"};
-string playerMarks = "xo";
+string[] players;
+switch (PlayMode)
+{
+    case 1:
+        players = new String[2] {"player", "robot"};
+        break;
+    case 2:
+        players = new String[2] {"robot", "player"};
+        break;
+    case 3:
+        players = new String[2] {"player1", "player2"};
+        break;
+    // case 4:
+    default:
+        players = new String[2] {"robot1", "robot2"};
+        break;
+}
+
+
 int currentPlayer = 0;
 bool gameEnd = false;
 // game result:
@@ -328,7 +347,7 @@ int[] moveCoordinates;
 while (!gameEnd)
 {
     // determine who moves (human or robot) to get mark coordinates
-    if (players[currentPlayer] == "player1" || players[currentPlayer] == "player2")
+    if (players[currentPlayer] == "player1" || players[currentPlayer] == "player2" || players[currentPlayer] == "player")
     {
         moveCoordinates = AskPlayerForCoordinates(GameState, fieldHeaderNames, players[currentPlayer], playerMarks[currentPlayer]);
     }
@@ -336,6 +355,7 @@ while (!gameEnd)
     {
         // currently not used. no robot players implement for now
         moveCoordinates = new int[2] {0, 0};
+        System.Threading.Thread.Sleep(1000);
     }
     AddMark(GameState, playerMarks[currentPlayer], moveCoordinates[0], moveCoordinates[1]);
 
