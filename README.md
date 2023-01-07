@@ -1,5 +1,7 @@
 # tic_tac_toe
 
+**Basic program is done, now will only fix errors if found them**
+
 ## Idea
 
 Create simple tic tac toe game that you can play with robot, yourself, or just watch two robots playing.

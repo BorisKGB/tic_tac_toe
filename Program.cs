@@ -125,58 +125,249 @@ int[] AskPlayerForCoordinates(char[][] GameField, string columnNames, string Pla
     return result;
 }
 
-int CheckMarksInRow(char[][] Field, int[] pointCoordinates, int direction, int rowLength)
-//bool IsEqualMarksInRow(char[][] Field, int[] pointCoordinates, int direction, int rowLength, bool ignoreEmpty)
-// Check if {rowLength} cells in {Field} in {direction} from(including) {pointCoordinates} are equal
+void markEmptyPoints(char[][] Field, int[][] CounterField, int[][] rowPoints)
+{
+    int pointX, pointY;
+    for (int point=0; point<rowPoints.Length;point++)
+        {
+            pointX = rowPoints[point][0];
+            pointY = rowPoints[point][1];
+            if (Field[pointX][pointY] == ' ')
+            {
+                CounterField[pointX][pointY]++;
+            }
+        }
+}
+
+int[] robotMove(char[][] Field, string columnNames, string playerMarks, string[] players, int currentPlayer, int Marks2Win)
+{
+    int[] result = new int[2] {-1, -1};
+    // 1. search if we in one step from victory -> do it
+    // 2. search if other player has almost complete rows -> try to prevent opponent victory
+    // 3. search for point which can create most number of rows
+
+    // count number of available rows, for each point
+    // so we can atleast pick point which can create maximum lines
+    int[][] RowsPerPoint = new int[Field.Length][];
+    for (int i=0;i<Field[0].Length;i++)
+    {
+        RowsPerPoint[i] = new int[Field[0].Length];
+    }
+    
+    int tmpLineStatus;
+    int[][] rowPoints;
+    int[] rowInfo;
+    for (int row=0; row<Field.Length; row++)
+    {
+        // check first axis row
+
+        // Always check horizontal lines
+        rowPoints = GetRowPoints(new int[] {row, 0}, 1, Marks2Win);
+        tmpLineStatus = CheckMarksInRow(Field, rowPoints);
+        if (tmpLineStatus == 1)
+        {
+            rowInfo = getRowInfo(Field, rowPoints, playerMarks);
+            // if we one step from win, do it
+            // also if we one step from loose
+            if (rowInfo[1] == 1)
+            {
+                return new int[2] {rowInfo[2], rowInfo[3]};
+            }
+            // else if we can continue this row, mark its points
+            else if (rowInfo[0] == currentPlayer)
+            {
+                markEmptyPoints(Field, RowsPerPoint, rowPoints);
+            }
+        }
+        if (tmpLineStatus == 0)
+        {
+            markEmptyPoints(Field, RowsPerPoint, rowPoints);
+        }
+        // If it make sense check oblique lines
+        if (row == 0)
+        {
+            rowPoints = GetRowPoints(new int[] {row, 0}, 2, Marks2Win);
+            tmpLineStatus = CheckMarksInRow(Field, rowPoints);
+            if (tmpLineStatus == 1)
+            {
+                rowInfo = getRowInfo(Field, rowPoints, playerMarks);
+                // if we one step from win, do it
+                // also if we one step from loose
+                if (rowInfo[1] == 1)
+                {
+                    return new int[2] {rowInfo[2], rowInfo[3]};
+                }
+                // else if we can continue this row, mark its points
+                else if (rowInfo[0] == currentPlayer)
+                {
+                    markEmptyPoints(Field, RowsPerPoint, rowPoints);
+                }
+            }
+            if (tmpLineStatus == 0)
+            {
+                markEmptyPoints(Field, RowsPerPoint, rowPoints);
+            }
+        }
+        if (row == Field.Length-1)
+        {
+            rowPoints = GetRowPoints(new int[] {row, 0}, 3, Marks2Win);
+            tmpLineStatus = CheckMarksInRow(Field, rowPoints);
+            if (tmpLineStatus == 1)
+            {
+                rowInfo = getRowInfo(Field, rowPoints, playerMarks);
+                // if we one step from win, do it
+                // also if we one step from loose
+                if (rowInfo[1] == 1)
+                {
+                    return new int[2] {rowInfo[2], rowInfo[3]};
+                }
+                // else if we can continue this row, mark its points
+                else if (rowInfo[0] == currentPlayer)
+                {
+                    markEmptyPoints(Field, RowsPerPoint, rowPoints);
+                }
+            }
+            if (tmpLineStatus == 0)
+            {
+                markEmptyPoints(Field, RowsPerPoint, rowPoints);
+            }
+        }
+        // check second axis row
+
+        // Always check vertical lines
+        rowPoints = GetRowPoints(new int[] {0, row}, 0, Marks2Win);
+        tmpLineStatus = CheckMarksInRow(Field, rowPoints);
+        if (tmpLineStatus == 1)
+        {
+            rowInfo = getRowInfo(Field, rowPoints, playerMarks);
+            // if we one step from win, do it
+            // also if we one step from loose
+            if (rowInfo[1] == 1)
+            {
+                return new int[2] {rowInfo[2], rowInfo[3]};
+            }
+            // else if we can continue this row, mark its points
+            else if (rowInfo[0] == currentPlayer)
+            {
+                markEmptyPoints(Field, RowsPerPoint, rowPoints);
+            }
+        }
+        if (tmpLineStatus == 0)
+        {
+            markEmptyPoints(Field, RowsPerPoint, rowPoints);
+        }
+        // do not need to check oblique lines in this part
+    }
+    // if we get to this point, then we check all field and did not find any easy solution
+    // but mark each field with possible row counter in {RowsPerPoint} variable
+    // so we just need to go through all field again and find point with max number
+    int maxX=0, maxY=0;
+    for (int x=0;x<RowsPerPoint.Length;x++)
+    {
+        for (int y=0;y<RowsPerPoint[0].Length;y++)
+            if (RowsPerPoint[x][y]>RowsPerPoint[maxX][maxY])
+            {
+                maxX = x;
+                maxY = y;
+            }
+    }
+    result[0] = maxX;
+    result[1] = maxY;
+    return result;
+}
+
+int[][] GetRowPoints(int[] firstPoint, int direction, int rowLength)
 // possible directions
 //  0 Going through the first axis
 //  1 Going through the second axis
 //  2 Going obliquely up
 //  3 Going obliquely down
-// return
-// 1 if all fields are equal (win strike)
-// 0 if all fields are equal or empty (possible to do win strike)
-// -1 if there are different symbols in row
 {
     int[][] points = new int[rowLength][];
-    char firstMark = Field[pointCoordinates[0]][pointCoordinates[1]];
     switch (direction)
     {
         case 0:
             for (int i=0;i<rowLength;i++)
             {
-                points[i] = new int[] {pointCoordinates[0]+i, pointCoordinates[1]};
+                points[i] = new int[] {firstPoint[0]+i, firstPoint[1]};
             }
             break;
         case 1:
             for (int i=0;i<rowLength;i++)
             {
-                points[i] = new int[] {pointCoordinates[0], pointCoordinates[1]+i};
+                points[i] = new int[] {firstPoint[0], firstPoint[1]+i};
             }
             break;
         case 2:
             for (int i=0;i<rowLength;i++)
             {
-                points[i] = new int[] {pointCoordinates[0]+i, pointCoordinates[1]+i};
+                points[i] = new int[] {firstPoint[0]+i, firstPoint[1]+i};
             }
             break;
         case 3:
             for (int i=0;i<rowLength;i++)
             {
-                points[i] = new int[] {pointCoordinates[0]-i, pointCoordinates[1]+i};
+                points[i] = new int[] {firstPoint[0]-i, firstPoint[1]+i};
             }
             break;
     }
-    int equalCount = 2;
-    for (int point=1;point<points.Length;point++)
+    return points;
+}
+
+
+int[] getRowInfo(char[][] Field, int[][] rowPoints, string playerMarks)
+//char getMarkCharFromRow(char[][] Field, int[][] rowPoints)
+//return int[] of
+// 1. number of last playerMark from row
+// 2. number of empty fields
+// 3. coordinateX of last empty field
+// 4. coordinateY of last empty field
+{
+    int[] result = new int[4] {0, 0, 0, 0};
+    int markNum = 0;
+    char cell;
+    for (int point=0; point<rowPoints.Length;point++)
     {
-        if (Field[points[point][0]][points[point][1]] == firstMark )
+        cell = Field[rowPoints[point][0]][rowPoints[point][1]];
+        markNum = playerMarks.IndexOf(cell);
+        if (cell != ' ' && markNum >= 0)
         {
-            equalCount += 2;
+            result[0] = markNum;
         }
-        else if (Field[points[point][0]][points[point][1]] == ' ')
+        else
+        {
+            result[1]++;
+            result[2] = rowPoints[point][0];
+            result[3] = rowPoints[point][1];
+        }
+    }
+    return result;
+}
+
+int CheckMarksInRow(char[][] Field, int[][] points)
+// Check if {rowLength} cells in {Field} in {direction} from(including) {pointCoordinates} are equal
+// return
+// 2 if all fields are equal (win strike)
+// 1 if all fields are equal or empty (possible to do win strike)
+// 0 if all fields are empty
+// -1 if there are different symbols in row
+{
+    //int[][] points = GetRowPoints(pointCoordinates, direction, rowLength);
+    char firstMark = Field[points[0][0]][points[0][1]];
+    int equalCount = 0;
+    for (int point=0;point<points.Length;point++)
+    {
+        if (firstMark == ' ' && Field[points[point][0]][points[point][1]] != ' ')
+        {
+            firstMark = Field[points[point][0]][points[point][1]];
+        }
+        if (Field[points[point][0]][points[point][1]] == ' ')
         {
             equalCount += 1;
+        }
+        else if (Field[points[point][0]][points[point][1]] == firstMark)
+        {
+            equalCount += 2;
         }
         else
         {
@@ -184,13 +375,17 @@ int CheckMarksInRow(char[][] Field, int[] pointCoordinates, int direction, int r
             break;
         }
     }
-    if (equalCount == rowLength * 2)
+    if (equalCount == points.Length * 2)
     {
-        return 1;
+        return 2;
+    }
+    if (firstMark == ' ')
+    {
+        return 0;
     }
     if (equalCount > 0)
     {
-        return 0;
+        return 1;
     }
     else
     {
@@ -210,6 +405,7 @@ int CheckGameStatus(char[][] GameField, string PlayerMarks, int Marks2Win)
     int possibleRows = 0;
     int emptyFields = 0;
     int tmpLineStatus;
+    int[][] rowPoints;
     //for each PlayerMark
     for (int markNum=0; markNum<PlayerMarks.Length; markNum++)
     {
@@ -219,36 +415,39 @@ int CheckGameStatus(char[][] GameField, string PlayerMarks, int Marks2Win)
             if (GameField[row][0] == PlayerMarks[markNum])
             {
                 // Always check horizontal lines
-                tmpLineStatus = CheckMarksInRow(GameField, new int[] {row, 0}, 1, Marks2Win);
-                if (tmpLineStatus == 1)
+                rowPoints = GetRowPoints(new int[] {row, 0}, 1, Marks2Win);
+                tmpLineStatus = CheckMarksInRow(GameField, rowPoints);
+                if (tmpLineStatus == 2)
                 {
                     return markNum;
                 }
-                else if (tmpLineStatus == 0)
+                else if (tmpLineStatus == 0 || tmpLineStatus == 1)
                 {
                     possibleRows += 1;
                 }
                 // If it make sense check oblique lines
                 if (row == 0)
                 {
-                    tmpLineStatus = CheckMarksInRow(GameField, new int[] {row, 0}, 2, Marks2Win);
-                    if (tmpLineStatus == 1)
+                    rowPoints = GetRowPoints(new int[] {row, 0}, 2, Marks2Win);
+                    tmpLineStatus = CheckMarksInRow(GameField, rowPoints);
+                    if (tmpLineStatus == 2)
                     {
                         return markNum;
                     }
-                    else if (tmpLineStatus == 0)
+                    else if (tmpLineStatus == 0 || tmpLineStatus == 1)
                     {
                         possibleRows += 1;
                     }
                 }
                 if (row == GameField.Length-1)
                 {
-                    tmpLineStatus = CheckMarksInRow(GameField, new int[] {row, 0}, 3, Marks2Win);
-                    if (tmpLineStatus == 1)
+                    rowPoints = GetRowPoints(new int[] {row, 0}, 3, Marks2Win);
+                    tmpLineStatus = CheckMarksInRow(GameField, rowPoints);
+                    if (tmpLineStatus == 2)
                     {
                         return markNum;
                     }
-                    else if (tmpLineStatus == 0)
+                    else if (tmpLineStatus == 0 || tmpLineStatus == 1)
                     {
                         possibleRows += 1;
                     }
@@ -262,12 +461,13 @@ int CheckGameStatus(char[][] GameField, string PlayerMarks, int Marks2Win)
             if (GameField[0][row] == PlayerMarks[markNum])
             {
                 // Always check vertical lines
-                tmpLineStatus = CheckMarksInRow(GameField, new int[] {0, row}, 0, Marks2Win);
-                if (tmpLineStatus == 1)
+                rowPoints = GetRowPoints(new int[] {0, row}, 0, Marks2Win);
+                tmpLineStatus = CheckMarksInRow(GameField, rowPoints);
+                if (tmpLineStatus == 2)
                 {
                     return markNum;
                 }
-                else if (tmpLineStatus == 0)
+                else if (tmpLineStatus == 0 || tmpLineStatus == 1)
                 {
                     possibleRows += 1;
                 }
@@ -354,7 +554,9 @@ while (!gameEnd)
     else
     {
         // currently not used. no robot players implement for now
-        moveCoordinates = new int[2] {0, 0};
+        //moveCoordinates = new int[] {0, 0};
+        moveCoordinates = robotMove(GameState, fieldHeaderNames, playerMarks, players, currentPlayer, Marks2Win);
+        Console.WriteLine($"{players[currentPlayer]} set '{playerMarks[currentPlayer]}' to {fieldHeaderNames[moveCoordinates[1]]}{moveCoordinates[0]+1}");
         System.Threading.Thread.Sleep(1000);
     }
     AddMark(GameState, playerMarks[currentPlayer], moveCoordinates[0], moveCoordinates[1]);
