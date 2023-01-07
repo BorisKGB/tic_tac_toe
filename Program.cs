@@ -89,7 +89,7 @@ bool AbleToAddMark(char[][] GameField, int[] result)
     {
         return false;
     }
-    else if (result[0] > GameField.Length || result[1] > GameField.Length)
+    else if (result[0] > GameField.Length-1 || result[1] > GameField.Length-1)
     {
         return false;
     }
@@ -107,14 +107,18 @@ int[] AskPlayerForCoordinates(char[][] GameField, string columnNames, string Pla
     while (result[0] < 0 || result[1] < 0)
     {
         Console.Write($"{PlayerName} turn, input coordinates to place '{PlayerMark}'> ");
-        input = Console.ReadLine();
+        input = Console.ReadLine().ToLower();
+        if (input.Length < 2)
+        {
+            input = "  ";
+        }
         result[1] = columnNames.IndexOf(input[0]);
         int.TryParse(input.Substring(1), out result[0]);
         // decrease resultX by one cause we counting from 0, but displaing from 1
         result[0] = result[0] - 1;
         if (!AbleToAddMark(GameField, result))
         {
-            Console.WriteLine($"Coordinates {input} incorrect, try again");
+            Console.WriteLine($"Coordinates '{input}' incorrect, try again");
             result[0] = -1;
         }
     }
