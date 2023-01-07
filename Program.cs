@@ -118,7 +118,7 @@ int[] AskPlayerForCoordinates(char[][] GameField, string columnNames, string Pla
         result[0] = result[0] - 1;
         if (!AbleToAddMark(GameField, result))
         {
-            Console.WriteLine($"Coordinates '{input}' incorrect, try again");
+            Console.WriteLine($"Coordinates '{input}' incorrect, try again. Example: 'a1'");
             result[0] = -1;
         }
     }
@@ -303,6 +303,8 @@ string PlayModeHelp = @$"Game mod can be
 1) robot vs human (default)
 2) human vs human
 3) robot vs robot
+---
+For input coordinates put Letter, then number. 'A1' as example
 Please input game mode number (default:{PlayModeDefault}): ";
 int PlayMode = GetPlayMode(PlayModeHelp, PlayModeDefault);
 

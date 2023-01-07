@@ -15,7 +15,7 @@ Draw a table in the console and wait for input from the player in format like:
 2 |   | x | x 
 3 |   |   | o 
 --------------
-Please write coordinate to put 'o' >
+Please write coordinate to put 'o' > a2
 ```
 
 ## Limitations
